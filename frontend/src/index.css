@@ -1,0 +1,140 @@
+@font-face {
+  font-family: 'Fraunces Display';
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Fraunces-SemiBold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Plex Sans';
+  font-weight: 400 600;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/PlexSans-Variable.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Plex Mono';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/PlexMono-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Plex Mono';
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/PlexMono-Medium.woff2') format('woff2');
+}
+
+:root {
+  --text: #12181a;
+  --text-muted: #57635f;
+  --bg: #f6f7f6;
+  --surface: #ffffff;
+  --surface-sunken: #eef1ef;
+  --border: #dce1de;
+  --border-strong: #c3cac6;
+
+  --accent: #0e6b66;
+  --accent-strong: #0a4f4c;
+  --accent-soft: #e3efec;
+  --accent-contrast: #fbfdfc;
+
+  --success: #1e8e5a;
+  --success-text: #146c43;
+  --success-soft: #e1f3e7;
+
+  --warning: #c98a1d;
+  --warning-text: #8a5a0a;
+  --warning-soft: #fbeeda;
+
+  --danger: #c1432e;
+  --danger-text: #932f1f;
+  --danger-bg: #fbe7e2;
+
+  --chan-instagram: #a23e6b;
+  --chan-instagram-bg: #f7e9ef;
+  --chan-facebook: #2f5fa8;
+  --chan-facebook-bg: #e8eef8;
+  --chan-email: #4b5563;
+  --chan-email-bg: #eef0f2;
+  --chan-googleads: #b5651d;
+  --chan-googleads-bg: #f8ede1;
+  --chan-tiktok: #24292f;
+  --chan-tiktok-bg: #ecedef;
+
+  --font-display: 'Fraunces Display', ui-serif, Georgia, serif;
+  --font-body: 'Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  font: 16px/145% var(--font-body);
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --text: #edefee;
+    --text-muted: #9aa6a2;
+    --bg: #0e1413;
+    --surface: #161d1c;
+    --surface-sunken: #101615;
+    --border: #263230;
+    --border-strong: #37443f;
+
+    --accent: #4fd1c0;
+    --accent-strong: #7ee0d2;
+    --accent-soft: rgba(79, 209, 192, 0.14);
+    --accent-contrast: #06100e;
+
+    --success: #4fcb8e;
+    --success-text: #7be0ac;
+    --success-soft: rgba(79, 203, 142, 0.16);
+
+    --warning: #e3a93d;
+    --warning-text: #f0c271;
+    --warning-soft: rgba(227, 169, 61, 0.16);
+
+    --danger: #e8695a;
+    --danger-text: #f19589;
+    --danger-bg: rgba(232, 105, 90, 0.16);
+
+    --chan-instagram: #e38bb0;
+    --chan-instagram-bg: rgba(227, 139, 176, 0.14);
+    --chan-facebook: #7fa8e0;
+    --chan-facebook-bg: rgba(127, 168, 224, 0.14);
+    --chan-email: #a7b0b8;
+    --chan-email-bg: rgba(167, 176, 184, 0.12);
+    --chan-googleads: #e0a15a;
+    --chan-googleads-bg: rgba(224, 161, 90, 0.14);
+    --chan-tiktok: #d7dadd;
+    --chan-tiktok-bg: rgba(215, 218, 221, 0.1);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

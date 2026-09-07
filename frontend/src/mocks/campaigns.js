@@ -1,0 +1,26 @@
+export const seedCampaigns = [
+  {
+    id: 1,
+    name: 'Campanha de Lançamento',
+    channel: 'Instagram',
+    startDate: '2026-01-01',
+    endDate: '2026-01-31',
+    budget: 5000,
+    goal: 'Apresentar o novo produto ao mercado',
+    status: 'em_andamento',
+    conversionValue: 80,
+    targetAudience: { ageRange: '25-34', region: 'Sudeste', interest: 'Tecnologia' },
+  },
+  {
+    id: 2,
+    name: 'Campanha de Fidelização',
+    channel: 'E-mail',
+    startDate: '2026-02-01',
+    endDate: '2026-02-28',
+    budget: 1500,
+    goal: 'Aumentar recompra de clientes atuais',
+    status: 'planejada',
+    conversionValue: 40,
+    targetAudience: { ageRange: '35-44', region: 'Sul', interest: 'Moda' },
+  },
+]
