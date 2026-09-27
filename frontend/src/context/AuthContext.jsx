@@ -12,18 +12,12 @@ export function AuthProvider({ children }) {
     return loggedUser
   }
 
-  async function register(name, email, password) {
-    const newUser = await authService.register({ name, email, password })
-    setUser(newUser)
-    return newUser
-  }
-
   function logout() {
     authService.logout()
     setUser(null)
   }
 
-  const value = { user, isAuthenticated: Boolean(user), login, register, logout }
+  const value = { user, isAuthenticated: Boolean(user), login, logout }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

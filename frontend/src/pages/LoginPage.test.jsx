@@ -11,7 +11,6 @@ function renderLoginPage() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/cadastro" element={<div>Tela de cadastro</div>} />
           <Route path="/" element={<div>Página inicial</div>} />
         </Routes>
       </AuthProvider>
@@ -53,12 +52,9 @@ describe('LoginPage', () => {
     expect(await screen.findByText(/credenciais inválidas/i)).toBeInTheDocument()
   })
 
-  it('possui link para a tela de cadastro', async () => {
-    const user = userEvent.setup()
+  it('não exibe link de cadastro público', () => {
     renderLoginPage()
 
-    await user.click(screen.getByRole('link', { name: /cadastr/i }))
-
-    expect(await screen.findByText('Tela de cadastro')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /cadastr/i })).not.toBeInTheDocument()
   })
 })

@@ -4,16 +4,13 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { AuthProvider, useAuth } from './AuthContext'
 
 function Consumer() {
-  const { user, isAuthenticated, login, logout, register } = useAuth()
+  const { user, isAuthenticated, login, logout } = useAuth()
 
   return (
     <div>
       <span data-testid="status">{isAuthenticated ? 'logado' : 'deslogado'}</span>
       <span data-testid="role">{user?.role ?? ''}</span>
       <button onClick={() => login('admin@campanhacerta.com', 'admin123')}>Entrar</button>
-      <button onClick={() => register('Fulano', 'fulano@campanhacerta.com', 'senha123')}>
-        Cadastrar
-      </button>
       <button onClick={logout}>Sair</button>
     </div>
   )
@@ -46,16 +43,6 @@ describe('AuthContext', () => {
 
     await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('logado'))
     expect(screen.getByTestId('role')).toHaveTextContent('admin')
-  })
-
-  it('cadastra um novo usuário e já autentica', async () => {
-    const user = userEvent.setup()
-    renderWithProvider()
-
-    await user.click(screen.getByRole('button', { name: 'Cadastrar' }))
-
-    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('logado'))
-    expect(screen.getByTestId('role')).toHaveTextContent('analista')
   })
 
   it('desloga e limpa o usuário', async () => {

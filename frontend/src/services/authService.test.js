@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { getStoredUser, login, logout, register } from './authService'
+import { createUser, getStoredUser, login, logout } from './authService'
 
 describe('authService', () => {
   beforeEach(() => {
@@ -36,9 +36,9 @@ describe('authService', () => {
     })
   })
 
-  describe('register', () => {
-    it('cadastra um novo usuário com papel analista por padrão', async () => {
-      const user = await register({
+  describe('createUser', () => {
+    it('cria um novo usuário com papel analista por padrão', async () => {
+      const user = await createUser({
         name: 'Novo Usuário',
         email: 'novo@campanhacerta.com',
         password: 'senha123',
@@ -52,8 +52,31 @@ describe('authService', () => {
       expect(user).not.toHaveProperty('password')
     })
 
-    it('permite login imediatamente após o cadastro', async () => {
-      await register({
+    it('cria um novo usuário com o papel informado', async () => {
+      const user = await createUser({
+        name: 'Novo Admin',
+        email: 'novo-admin@campanhacerta.com',
+        password: 'senha123',
+        role: 'admin',
+      })
+
+      expect(user.role).toBe('admin')
+    })
+
+    it('não altera a sessão de quem está criando o usuário', async () => {
+      await login({ email: 'admin@campanhacerta.com', password: 'admin123' })
+
+      await createUser({
+        name: 'Novo Usuário',
+        email: 'novo@campanhacerta.com',
+        password: 'senha123',
+      })
+
+      expect(getStoredUser()).toMatchObject({ email: 'admin@campanhacerta.com' })
+    })
+
+    it('permite login com o usuário criado', async () => {
+      await createUser({
         name: 'Novo Usuário',
         email: 'novo@campanhacerta.com',
         password: 'senha123',
@@ -64,9 +87,9 @@ describe('authService', () => {
       expect(user.email).toBe('novo@campanhacerta.com')
     })
 
-    it('rejeita cadastro com e-mail já existente', async () => {
+    it('rejeita e-mail já cadastrado', async () => {
       await expect(
-        register({ name: 'Duplicado', email: 'admin@campanhacerta.com', password: 'outrasenha' }),
+        createUser({ name: 'Duplicado', email: 'admin@campanhacerta.com', password: 'outrasenha' }),
       ).rejects.toThrow('E-mail já cadastrado')
     })
   })

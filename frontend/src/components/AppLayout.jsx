@@ -37,6 +37,20 @@ const NAV_ITEMS = [
   },
 ]
 
+const ADMIN_NAV_ITEMS = [
+  {
+    to: '/usuarios/novo',
+    label: 'Novo usuário',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <circle cx="9" cy="8" r="3.5" />
+        <path d="M3 20a6 6 0 0 1 12 0" />
+        <path d="M17 9h4M19 7v4" />
+      </svg>
+    ),
+  },
+]
+
 function initialsOf(name) {
   if (!name) return '?'
   return name
@@ -78,6 +92,17 @@ function AppLayout() {
               {item.label}
             </NavLink>
           ))}
+          {user?.role === 'admin' &&
+            ADMIN_NAV_ITEMS.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) => `app-nav-item${isActive ? ' is-active' : ''}`}
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
         </nav>
 
         <div className="app-sidebar-footer">

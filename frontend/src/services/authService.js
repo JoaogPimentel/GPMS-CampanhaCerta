@@ -1,8 +1,15 @@
 import { seedUsers } from '../mocks/users'
 import { nextId } from '../utils/nextId'
+import { apiFetch, hasApi, setToken } from './apiClient'
 
 const USERS_KEY = 'campanhacerta_users'
 const SESSION_KEY = 'campanhacerta_session'
+
+function saveSession(user) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(user))
+}
+
+// ---- adaptador mock (localStorage) — usado em testes e sem backend configurado ----
 
 function loadUsers() {
   const raw = localStorage.getItem(USERS_KEY)
@@ -21,11 +28,7 @@ function toPublicUser(user) {
   return publicUser
 }
 
-function saveSession(user) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(user))
-}
-
-export async function login({ email, password }) {
+async function mockLogin({ email, password }) {
   const users = loadUsers()
   const found = users.find((user) => user.email === email && user.password === password)
 
@@ -36,22 +39,47 @@ export async function login({ email, password }) {
   return publicUser
 }
 
-export async function register({ name, email, password }) {
+async function mockCreateUser({ name, email, password, role = 'analista' }) {
   const users = loadUsers()
 
   if (users.some((user) => user.email === email)) {
     throw new Error('E-mail já cadastrado')
   }
 
-  const newUser = { id: nextId(users), name, email, password, role: 'analista' }
+  const newUser = { id: nextId(users), name, email, password, role }
   saveUsers([...users, newUser])
 
-  const publicUser = toPublicUser(newUser)
-  saveSession(publicUser)
-  return publicUser
+  return toPublicUser(newUser)
+}
+
+// ---- adaptador HTTP — usado quando VITE_API_URL aponta para o backend Flask ----
+
+async function httpLogin({ email, password }) {
+  const { user, token } = await apiFetch('/auth/login', { method: 'POST', json: { email, password } })
+  setToken(token)
+  saveSession(user)
+  return user
+}
+
+async function httpCreateUser({ name, email, password, role = 'analista' }) {
+  const { user } = await apiFetch('/auth/users', {
+    method: 'POST',
+    json: { name, email, password, role },
+  })
+  return user
+}
+
+export async function login(credentials) {
+  return hasApi ? httpLogin(credentials) : mockLogin(credentials)
+}
+
+// Restrito a administradores (RF01/RF09) — não afeta a sessão de quem chama.
+export async function createUser(data) {
+  return hasApi ? httpCreateUser(data) : mockCreateUser(data)
 }
 
 export function logout() {
+  setToken(null)
   localStorage.removeItem(SESSION_KEY)
 }
 
