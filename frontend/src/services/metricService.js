@@ -1,8 +1,11 @@
 import { seedMetrics } from '../mocks/metrics'
 import { nextId } from '../utils/nextId'
+import { apiFetch, hasApi } from './apiClient'
 
 const METRICS_KEY = 'campanhacerta_metrics'
 const REQUIRED_COLUMNS = ['date', 'reach', 'clicks', 'conversions']
+
+// ---- adaptador mock (localStorage) — usado em testes e sem backend configurado ----
 
 function loadMetrics() {
   const raw = localStorage.getItem(METRICS_KEY)
@@ -16,11 +19,11 @@ function saveMetrics(metrics) {
   localStorage.setItem(METRICS_KEY, JSON.stringify(metrics))
 }
 
-export async function getMetricsByCampaign(campaignId) {
+async function mockGetMetricsByCampaign(campaignId) {
   return loadMetrics().filter((metric) => metric.campaignId === Number(campaignId))
 }
 
-export async function createMetric({ campaignId, date, reach, clicks, conversions }) {
+async function mockCreateMetric({ campaignId, date, reach, clicks, conversions }) {
   const metrics = loadMetrics()
   const metric = {
     id: nextId(metrics),
@@ -32,6 +35,45 @@ export async function createMetric({ campaignId, date, reach, clicks, conversion
   }
   saveMetrics([...metrics, metric])
   return metric
+}
+
+async function mockImportMetricsCsv(campaignId, csvText) {
+  const { parsed, errors } = parseMetricsCsv(csvText)
+
+  for (const row of parsed) {
+    await mockCreateMetric({ campaignId, ...row })
+  }
+
+  return { imported: parsed.length, errors }
+}
+
+// ---- adaptador HTTP — usado quando VITE_API_URL aponta para o backend Flask ----
+
+async function httpGetMetricsByCampaign(campaignId) {
+  return apiFetch(`/campaigns/${campaignId}/metrics`)
+}
+
+async function httpCreateMetric({ campaignId, date, reach, clicks, conversions }) {
+  return apiFetch(`/campaigns/${campaignId}/metrics`, {
+    method: 'POST',
+    json: { date, reach: Number(reach), clicks: Number(clicks), conversions: Number(conversions) },
+  })
+}
+
+async function httpImportMetricsCsv(campaignId, csvText) {
+  return apiFetch(`/campaigns/${campaignId}/metrics/import-csv`, {
+    method: 'POST',
+    body: csvText,
+    headers: { 'Content-Type': 'text/csv' },
+  })
+}
+
+export async function getMetricsByCampaign(campaignId) {
+  return hasApi ? httpGetMetricsByCampaign(campaignId) : mockGetMetricsByCampaign(campaignId)
+}
+
+export async function createMetric(data) {
+  return hasApi ? httpCreateMetric(data) : mockCreateMetric(data)
 }
 
 export function parseMetricsCsv(csvText) {
@@ -74,11 +116,5 @@ export function parseMetricsCsv(csvText) {
 }
 
 export async function importMetricsCsv(campaignId, csvText) {
-  const { parsed, errors } = parseMetricsCsv(csvText)
-
-  for (const row of parsed) {
-    await createMetric({ campaignId, ...row })
-  }
-
-  return { imported: parsed.length, errors }
+  return hasApi ? httpImportMetricsCsv(campaignId, csvText) : mockImportMetricsCsv(campaignId, csvText)
 }

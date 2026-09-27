@@ -6,31 +6,58 @@ desempenho, calendário de publicações e relatórios.
 
 ## Status do projeto
 
-Este repositório contém o **piloto**: um frontend React com dados mockados
-(fake), sem backend nem banco de dados reais. O objetivo é validar as telas e
-os fluxos de negócio antes de implementar a API em Flask + SQLite.
+O repositório tem duas partes:
 
-A camada `frontend/src/services/` concentra o acesso a dados. Hoje ela resolve
-contra um mock em memória/`localStorage`; na próxima fase será trocada por
-chamadas HTTP ao backend real, sem alterar os componentes.
+- `frontend/`: React com todas as telas do produto (RF01–RF10).
+- `backend/`: API Flask + SQLite real, com autenticação (senha com hash),
+  persistência e controle de acesso por perfil.
+
+A camada `frontend/src/services/` concentra o acesso a dados e tem **dois
+adaptadores** por arquivo: um mock em `localStorage` (usado nos testes e
+quando não há `VITE_API_URL` configurada) e um HTTP que chama o backend Flask.
+Os componentes não sabem qual dos dois está ativo — a escolha é só a presença
+da variável de ambiente.
 
 ## Como rodar
 
-### Via Docker (recomendado)
+### Via Docker (recomendado — frontend + backend)
 
 ```bash
 docker compose up --build
 ```
 
-A aplicação fica disponível em http://localhost:8080.
+Frontend em http://localhost:8080, API em http://localhost:5001/api. O banco
+SQLite persiste no volume `backend-data`; o container semeia os dados de
+demonstração sozinho no primeiro boot (é seguro rodar de novo — se já
+houver usuários, não faz nada).
 
 ### Localmente (desenvolvimento)
 
+Backend:
+
+```bash
+cd backend
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+flask seed      # popula usuários/campanhas de demonstração
+flask run       # http://localhost:5001 — porta e FLASK_APP já vêm do .flaskenv
+```
+
+Não use `--port 5000`: no macOS essa porta é ocupada pelo AirPlay Receiver do
+próprio sistema, que responde no lugar do Flask e dá erro de conexão sem
+avisar por quê.
+
+Frontend (em outro terminal):
+
 ```bash
 cd frontend
+cp .env.example .env.local   # aponta para http://localhost:5001/api
 npm install
 npm run dev
 ```
+
+Sem `.env.local` (ou sem `VITE_API_URL`), o frontend volta a rodar 100% mockado
+em `localStorage` — útil para demonstrar telas sem subir o backend.
 
 ## Login de demonstração
 
@@ -42,8 +69,10 @@ com pessoas reais):
 | admin@campanhacerta.com | admin123 | admin |
 | analista@campanhacerta.com | analista123 | analista |
 
-Também é possível se cadastrar pela tela `/cadastro` — todo novo cadastro
-recebe o perfil `analista`.
+Não há cadastro público — criar conta é uma ação restrita a administradores,
+pela tela `/usuarios/novo` (só aparece no menu para quem está logado como
+admin). O perfil da nova conta é escolhido por quem cria (`admin` ou
+`analista`).
 
 ## Perfis e permissões (RF09)
 
@@ -52,9 +81,12 @@ recebe o perfil `analista`.
 | Ver campanhas, dashboard, calendário | Sim | Sim |
 | Criar/editar campanhas | Sim | Sim |
 | Registrar gastos, métricas e publicações | Sim | Sim |
+| **Criar novos usuários** | Sim | **Não** |
 | **Excluir campanhas** | Sim | **Não** |
 
-O perfil ativo aparece na barra de navegação ("Perfil: admin/analista").
+O perfil ativo aparece na barra de navegação ("Perfil: admin/analista"). A
+restrição de criação de usuário é aplicada no backend (`@admin_required` em
+`POST /api/auth/users`), não só escondendo o botão na tela.
 
 ## Roteiro de demonstração
 
@@ -74,16 +106,19 @@ O perfil ativo aparece na barra de navegação ("Perfil: admin/analista").
    campanha na tabela "Desempenho por campanha" (RF07).
 6. Abra o **Calendário**, navegue entre meses e crie uma publicação vinculada
    a uma campanha (RF08).
-7. Saia e entre como `analista@campanhacerta.com` / `analista123`: repare que
-   o botão "Excluir" some da listagem de campanhas (RF09).
-8. De volta como admin, exporte o relatório em **Exportar CSV** na tela de
+7. Ainda como admin, abra **Novo usuário** no menu e crie uma conta (RF01,
+   RF09) — o link só existe pra quem está logado como admin.
+8. Saia e entre como `analista@campanhacerta.com` / `analista123`: repare que
+   "Novo usuário" some do menu e o botão "Excluir" some da listagem de
+   campanhas (RF09).
+9. De volta como admin, exporte o relatório em **Exportar CSV** na tela de
    detalhes da campanha (RF10).
 
 ## Checklist de requisitos funcionais
 
 | RF | Descrição | Onde verificar |
 |---|---|---|
-| RF01 | Cadastro e login | `/login`, `/cadastro` |
+| RF01 | Cadastro (admin) e login | `/usuarios/novo`, `/login` |
 | RF02 | CRUD de campanhas | `/campanhas` |
 | RF03 | Público-alvo da campanha | Formulário de campanha |
 | RF04 | Registro de gastos | Detalhe da campanha |
@@ -94,17 +129,17 @@ O perfil ativo aparece na barra de navegação ("Perfil: admin/analista").
 | RF09 | Perfis e permissões | Admin vs. analista |
 | RF10 | Exportação de relatório | Botão "Exportar CSV" |
 
-RNF02 (tempo de resposta), RNF03 (hash de senha) e RNF04 (hospedagem) ficam
-para a fase de backend real — não se aplicam a um frontend mockado.
+RNF03 (hash de senha) está implementado no backend (`werkzeug.security`).
+RNF02 (tempo de resposta) e RNF04 (hospedagem gratuita) são validados na
+implantação — ver [Débito de processo](#próximos-passos) abaixo.
 
-## Contrato de `services/*.js` (para a próxima fase — backend Flask)
+## Contrato de `services/*.js`
 
-Cada função abaixo já resolve contra um mock em `localStorage`. A ideia é que
-a futura API Flask implemente exatamente essas assinaturas, permitindo trocar
-a implementação sem mexer em componentes.
+Cada arquivo em `frontend/src/services/` exporta as mesmas funções para os
+dois adaptadores (mock e HTTP), então os componentes nunca mudam:
 
-- `authService`: `login({email, password})`, `register({name, email, password})`,
-  `logout()`, `getStoredUser()`.
+- `authService`: `login({email, password})`, `createUser({name, email, password, role})`
+  (restrito a admin), `logout()`, `getStoredUser()`.
 - `campaignService`: `getCampaigns()`, `getCampaignById(id)`,
   `createCampaign(data)`, `updateCampaign(id, updates)`, `deleteCampaign(id)`.
 - `expenseService`: `getExpensesByCampaign(campaignId)`, `createExpense(data)`.
@@ -114,15 +149,28 @@ a implementação sem mexer em componentes.
   `getPublicationsByMonth(year, month)`, `createPublication(data)`,
   `updatePublication(id, updates)`.
 
-Todas as funções são `async` e retornam Promises, já compatível com uma troca
-futura por `fetch`/`axios`.
+Endpoints correspondentes na API (todos sob `/api`, exceto `/health`):
+`POST /auth/login`, `GET /auth/me`, `POST /auth/users` (exige perfil admin),
+`GET|POST /campaigns`,
+`GET|PUT|DELETE /campaigns/<id>` (DELETE exige perfil admin),
+`GET|POST /campaigns/<id>/expenses`, `GET|POST /campaigns/<id>/metrics`,
+`POST /campaigns/<id>/metrics/import-csv` (corpo: CSV cru),
+`GET|POST /publications`, `GET|PUT /publications/<id>`,
+`GET /publications/month/<year>/<month>`.
 
 ## Testes
 
 ```bash
-cd frontend
-npm test
+cd frontend && npm test    # 116 testes — sempre contra o adaptador mock
+cd backend && source .venv/bin/activate && pytest   # contra SQLite em memória
 ```
+
+## Próximos passos
+
+- Estratégia de branches e Issues no GitHub (bloco 2.1 da EAP) — ainda não
+  criada neste repositório.
+- Deploy do backend em hospedagem gratuita (RNF04) e apontar o build do
+  frontend (`VITE_API_URL`) para a URL pública.
 
 ## Licença
 

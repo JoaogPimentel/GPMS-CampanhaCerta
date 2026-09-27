@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 function LoginPage() {
@@ -64,10 +64,6 @@ function LoginPage() {
           <code>admin@campanhacerta.com</code> / <code>admin123</code>
           <br />
           <code>analista@campanhacerta.com</code> / <code>analista123</code>
-        </p>
-
-        <p className="auth-footer">
-          Não tem conta? <Link to="/cadastro">Cadastre-se</Link>
         </p>
       </main>
     </div>
