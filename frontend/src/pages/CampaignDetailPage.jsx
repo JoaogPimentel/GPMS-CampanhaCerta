@@ -89,10 +89,12 @@ function CampaignDetailPage() {
           </div>
         </div>
         <div className="page-head-actions">
-          <Link to={`/campanhas/${campaign.id}/editar`} className="link-action">
+          <Link to={`/campanhas/${campaign.id}/editar`} className="btn-secondary">
             Editar campanha
           </Link>
-          <button onClick={handleExportCsv}>Exportar CSV</button>
+          <button className="btn-secondary" onClick={handleExportCsv}>
+            Exportar CSV
+          </button>
         </div>
       </div>
 

@@ -299,6 +299,28 @@ button.btn-danger {
   background: var(--danger-bg);
 }
 
+.btn-secondary,
+button.btn-secondary {
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 7px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-secondary:hover,
+button.btn-secondary:hover {
+  background: var(--surface-sunken);
+}
+
 .link-action {
   font-size: 0.86rem;
   font-weight: 500;
