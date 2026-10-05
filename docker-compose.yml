@@ -2,18 +2,25 @@ services:
   frontend:
     build:
       context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:5001/api
     ports:
       - "8080:80"
     restart: unless-stopped
+    depends_on:
+      - backend
 
-  # backend:
-  #   build:
-  #     context: ./backend
-  #   ports:
-  #     - "5000:5000"
-  #   volumes:
-  #     - backend-data:/app/instance
-  #   restart: unless-stopped
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "5001:5001"
+    environment:
+      SECRET_KEY: ${BACKEND_SECRET_KEY:-dev-secret-change-me}
+      CORS_ORIGINS: http://localhost:8080,http://localhost:5173
+    volumes:
+      - backend-data:/app/instance
+    restart: unless-stopped
 
-# volumes:
-#   backend-data:
+volumes:
+  backend-data:
