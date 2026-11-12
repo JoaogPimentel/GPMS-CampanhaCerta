@@ -212,6 +212,7 @@ function CampaignDetailPage() {
                   id="expense-amount"
                   type="number"
                   min="0"
+                  step="0.01"
                   value={amount}
                   onChange={(event) => setAmount(event.target.value)}
                   required

@@ -94,4 +94,17 @@ describe('CampaignFormPage', () => {
       status: 'em_andamento',
     })
   })
+
+  it('aceita centavos no orçamento e no valor por conversão', async () => {
+    const user = userEvent.setup()
+    renderCreate()
+
+    const budgetInput = screen.getByLabelText(/orçamento/i)
+    const conversionInput = screen.getByLabelText(/valor por conversão/i)
+    await user.type(budgetInput, '2500.75')
+    await user.type(conversionInput, '49.90')
+
+    expect(budgetInput).toBeValid()
+    expect(conversionInput).toBeValid()
+  })
 })

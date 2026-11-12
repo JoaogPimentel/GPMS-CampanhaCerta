@@ -5,6 +5,15 @@ const currencyFormatter = new Intl.NumberFormat('pt-BR', {
   maximumFractionDigits: 0,
 })
 
+// Valores com centavos mostram sempre duas casas (R$ 150,50); valores
+// inteiros continuam enxutos (R$ 4.200), como no restante da interface.
+const currencyWithCentsFormatter = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
 const numberFormatter = new Intl.NumberFormat('pt-BR')
 
 // Intl usa espaço não-quebrável entre o símbolo e o número; normalizamos para
@@ -14,7 +23,12 @@ function normalizeSpaces(text) {
 }
 
 export function formatCurrency(value) {
-  return normalizeSpaces(currencyFormatter.format(Number(value) || 0))
+  const amount = Number(value) || 0
+  const roundedToCents = Math.round(amount * 100) / 100
+  const formatter = Number.isInteger(roundedToCents)
+    ? currencyFormatter
+    : currencyWithCentsFormatter
+  return normalizeSpaces(formatter.format(roundedToCents))
 }
 
 export function formatNumber(value) {
