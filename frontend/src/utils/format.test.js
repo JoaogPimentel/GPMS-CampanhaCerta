@@ -9,6 +9,15 @@ describe('formatCurrency', () => {
   it('trata valores ausentes como zero', () => {
     expect(formatCurrency(undefined)).toBe('R$ 0')
   })
+
+  it('mostra os centavos quando o valor não é inteiro', () => {
+    expect(formatCurrency(150.5)).toBe('R$ 150,50')
+    expect(formatCurrency(1234.99)).toBe('R$ 1.234,99')
+  })
+
+  it('não mostra centavos de erro de ponto flutuante', () => {
+    expect(formatCurrency(0.1 + 0.2 + 99.7)).toBe('R$ 100')
+  })
 })
 
 describe('formatNumber', () => {

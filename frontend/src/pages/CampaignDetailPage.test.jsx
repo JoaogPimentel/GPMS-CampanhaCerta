@@ -116,4 +116,15 @@ describe('CampaignDetailPage', () => {
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
+
+  it('aceita centavos no valor do gasto', async () => {
+    const user = userEvent.setup()
+    renderDetail(1)
+    await screen.findByRole('heading', { level: 1 })
+
+    const amountInput = screen.getByLabelText(/valor/i)
+    await user.type(amountInput, '150.50')
+
+    expect(amountInput).toBeValid()
+  })
 })

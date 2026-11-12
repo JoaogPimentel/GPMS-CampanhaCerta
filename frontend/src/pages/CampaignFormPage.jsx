@@ -142,6 +142,7 @@ function CampaignFormPage() {
                 id="campaign-budget"
                 type="number"
                 min="0"
+                step="0.01"
                 value={form.budget}
                 onChange={handleChange('budget')}
                 required
@@ -154,6 +155,7 @@ function CampaignFormPage() {
                 id="campaign-conversion-value"
                 type="number"
                 min="0"
+                step="0.01"
                 value={form.conversionValue}
                 onChange={handleChange('conversionValue')}
               />
