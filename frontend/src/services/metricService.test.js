@@ -60,6 +60,15 @@ describe('metricService', () => {
   })
 
   describe('parseMetricsCsv', () => {
+    it('aceita CSV do Excel em português (separador ";", BOM e CRLF)', () => {
+      const csv = '﻿date;reach;clicks;conversions\r\n2026-01-01;500;40;5\r\n'
+
+      const { parsed, errors } = parseMetricsCsv(csv)
+
+      expect(errors).toEqual([])
+      expect(parsed).toEqual([{ date: '2026-01-01', reach: 500, clicks: 40, conversions: 5 }])
+    })
+
     it('interpreta linhas válidas de um CSV', () => {
       const csv = 'date,reach,clicks,conversions\n2026-01-01,500,40,5\n2026-01-02,600,50,6'
 
