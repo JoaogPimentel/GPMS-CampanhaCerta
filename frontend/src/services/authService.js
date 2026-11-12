@@ -1,6 +1,6 @@
 import { seedUsers } from '../mocks/users'
 import { nextId } from '../utils/nextId'
-import { apiFetch, hasApi, setToken } from './apiClient'
+import { apiFetch, getToken, hasApi, setToken } from './apiClient'
 
 const USERS_KEY = 'campanhacerta_users'
 const SESSION_KEY = 'campanhacerta_session'
@@ -85,5 +85,14 @@ export function logout() {
 
 export function getStoredUser() {
   const raw = localStorage.getItem(SESSION_KEY)
-  return raw ? JSON.parse(raw) : null
+  if (!raw) return null
+
+  // Com backend, a sessão só vale se o token também existir; sem ele toda
+  // chamada à API devolveria 401 e o usuário ficaria preso numa tela vazia.
+  if (hasApi && !getToken()) {
+    localStorage.removeItem(SESSION_KEY)
+    return null
+  }
+
+  return JSON.parse(raw)
 }

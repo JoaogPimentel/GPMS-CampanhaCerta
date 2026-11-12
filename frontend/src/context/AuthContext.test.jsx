@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { SESSION_EXPIRED_EVENT } from '../services/apiClient'
 import { AuthProvider, useAuth } from './AuthContext'
 
 function Consumer() {
@@ -54,6 +55,20 @@ describe('AuthContext', () => {
     await user.click(screen.getByRole('button', { name: 'Sair' }))
 
     expect(screen.getByTestId('status')).toHaveTextContent('deslogado')
+  })
+
+  it('desloga sozinho quando a API avisa que a sessão expirou', async () => {
+    const user = userEvent.setup()
+    renderWithProvider()
+    await user.click(screen.getByRole('button', { name: 'Entrar' }))
+    await waitFor(() => expect(screen.getByTestId('status')).toHaveTextContent('logado'))
+
+    act(() => {
+      window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT))
+    })
+
+    expect(screen.getByTestId('status')).toHaveTextContent('deslogado')
+    expect(localStorage.getItem('campanhacerta_session')).toBeNull()
   })
 
   it('mantém a sessão ao remontar o provider (persistência)', async () => {

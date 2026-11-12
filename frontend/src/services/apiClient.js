@@ -6,6 +6,10 @@ export const hasApi = Boolean(API_URL) && !import.meta.env.VITEST
 
 const TOKEN_KEY = 'campanhacerta_token'
 
+// Disparado quando a API recusa o token salvo (expirado ou inválido). O
+// AuthContext escuta este evento para encerrar a sessão e voltar ao login.
+export const SESSION_EXPIRED_EVENT = 'campanhacerta:session-expired'
+
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY)
 }
@@ -33,6 +37,11 @@ export async function apiFetch(path, { method = 'GET', json, body, headers = {} 
   if (token) finalHeaders.Authorization = `Bearer ${token}`
 
   const response = await fetch(`${API_URL}${path}`, { method, headers: finalHeaders, body: finalBody })
+
+  if (response.status === 401 && token) {
+    setToken(null)
+    window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT))
+  }
 
   if (!response.ok) throw await parseError(response)
   if (response.status === 204) return null
