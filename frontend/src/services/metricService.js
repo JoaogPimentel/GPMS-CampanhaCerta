@@ -76,10 +76,18 @@ export async function createMetric(data) {
   return hasApi ? httpCreateMetric(data) : mockCreateMetric(data)
 }
 
+// O Excel em português salva CSV com ";" (a vírgula é o separador decimal).
+// Aceitamos os dois, escolhendo pelo cabeçalho — mesma regra do backend.
+function detectDelimiter(headerLine) {
+  const count = (char) => headerLine.split(char).length - 1
+  return count(';') > count(',') ? ';' : ','
+}
+
 export function parseMetricsCsv(csvText) {
-  const lines = csvText.trim().split(/\r?\n/)
+  const lines = csvText.replace(/^﻿/, '').trim().split(/\r?\n/)
   const [header, ...rows] = lines
-  const columns = header.split(',').map((column) => column.trim().toLowerCase())
+  const delimiter = detectDelimiter(header)
+  const columns = header.split(delimiter).map((column) => column.trim().toLowerCase())
 
   const parsed = []
   const errors = []
@@ -88,7 +96,7 @@ export function parseMetricsCsv(csvText) {
     if (!line.trim()) return
     const rowNumber = index + 2
 
-    const cells = line.split(',').map((cell) => cell.trim())
+    const cells = line.split(delimiter).map((cell) => cell.trim())
     const row = {}
     columns.forEach((column, columnIndex) => {
       row[column] = cells[columnIndex]

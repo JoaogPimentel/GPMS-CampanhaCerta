@@ -1,24 +1,36 @@
+import csv
+
 REQUIRED_COLUMNS = ["date", "reach", "clicks", "conversions"]
 
 
+def _detect_delimiter(header_line):
+    # O Excel em português salva CSV com ";" porque a vírgula é o separador
+    # decimal. Aceitamos os dois, escolhendo pelo cabeçalho.
+    return ";" if header_line.count(";") > header_line.count(",") else ","
+
+
 def parse_metrics_csv(csv_text):
-    lines = csv_text.strip().splitlines()
+    # O Excel ("CSV UTF-8") grava um BOM no início do arquivo. Sem removê-lo,
+    # a primeira coluna vira "﻿date" e toda linha é rejeitada como
+    # "campos ausentes (date)" — str.strip() não remove o BOM.
+    csv_text = csv_text.lstrip("﻿").strip()
+    lines = csv_text.splitlines()
     if not lines:
         return [], []
 
-    header, *rows = lines
-    columns = [column.strip().lower() for column in header.split(",")]
+    reader = csv.reader(lines, delimiter=_detect_delimiter(lines[0]))
+    header = next(reader)
+    columns = [column.strip().lower() for column in header]
 
     parsed = []
     errors = []
 
-    for index, line in enumerate(rows):
-        if not line.strip():
+    for index, cells in enumerate(reader):
+        if not any(cell.strip() for cell in cells):
             continue
         row_number = index + 2
 
-        cells = [cell.strip() for cell in line.split(",")]
-        row = dict(zip(columns, cells))
+        row = dict(zip(columns, (cell.strip() for cell in cells)))
 
         missing = [column for column in REQUIRED_COLUMNS if not row.get(column)]
         if missing:
